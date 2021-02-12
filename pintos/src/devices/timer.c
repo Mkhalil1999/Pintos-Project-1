@@ -90,10 +90,33 @@ void
 timer_sleep (int64_t ticks) 
 {
   int64_t start = timer_ticks ();
-
+  
+  struct thread *cur_thread;
+  
+  enum cur_level old_level;
+  
   ASSERT (intr_get_level () == INTR_ON);
-  while (timer_elapsed (start) < ticks) 
-    thread_yield ();
+  
+  if(ticks <= 0)
+	  return;
+  
+  old_level = intr_disable ();
+  /*Get current thread and set ticks, set sema*/
+  cur_thread = thread_current ();
+  cur_thread -> init_ticks = start () + ticks;
+  sema_init(&(thread_current()->sema), 0);
+  
+  //Sub changes in threads.c
+  /*Lock lists debug furhter maybe?*/
+  //lock_acquire(&sleeping_threads_list_lock);
+  
+  /* Insert thread into ordered list*/
+  list_insert_ordered (&sleeping_threads, &cur_thread->elem, compare_sleeping_threads, NULL);
+  
+  /*Same with lock acquire*/
+  //lock_release(&sleeping_threads_list_lock);
+  
+  sema_down(&cur_thread -> sema);
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
