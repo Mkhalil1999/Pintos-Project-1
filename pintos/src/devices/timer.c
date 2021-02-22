@@ -108,7 +108,7 @@ timer_sleep (int64_t ticks)
   cur_thread = thread_current ();
   cur_thread->wakeup_ticks = timer_ticks () + ticks;
 
-  sema_first(&(thread_current()->sema),0);
+  sema_init(&(thread_current()->sema),0);
   
   lock_acquire(&sleeping_threads_list);
   /* Insert current thread to ordered sleeping list */
